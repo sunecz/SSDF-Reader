@@ -74,6 +74,6 @@ public class SSDObject
 	@Override
 	public String toString()
 	{
-		return "[type=" + type + ", value=" + value + "]";
+		return "[name=" + name + ", type=" + type + ", value=" + value + "]";
 	}
 }

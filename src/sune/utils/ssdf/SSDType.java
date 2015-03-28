@@ -32,7 +32,7 @@ public enum SSDType
 	 * Represents a null object or nothing. In SSD
 	 * File it is defined by word null, or if an
 	 * object does not have a value.*/
-	NULL("^(null|)$"),
+	NULL("^(null)$"),
 	/**
 	 * Represents an undefined object. In SSD File
 	 * it is only used for objects that could not

@@ -15,9 +15,10 @@ public class SSDArray implements Iterable<SSDObject>
 	/**
 	 * The Map (list) of stored objects*/
 	private final Map<String, SSDObject> objects;
-	
+	/**
+	 * The array name*/
 	private final String name;
-
+	
 	/**
 	 * Creates new instance of Data Array*/
 	protected SSDArray()
@@ -71,7 +72,7 @@ public class SSDArray implements Iterable<SSDObject>
 	 * 		   prevent this exception.
 	 * 
 	 * @param name The name of the object to get
-	 * @return The object*/
+	 * @return The SSD object*/
 	public SSDObject getObject(String name)
 	{
 		try
@@ -87,7 +88,7 @@ public class SSDArray implements Iterable<SSDObject>
 		
 		return null;
 	}
-	
+
 	/**
 	 * Gets an array of all objects that are in the
 	 * given array object.
@@ -100,13 +101,13 @@ public class SSDArray implements Iterable<SSDObject>
 	 * 		   prevent this exception.
 	 * 
 	 * @param name The name of the array to get
-	 * @return The Data Array object with all objects in the
+	 * @return The SSD Array object with all objects in the
 	 * 		   given array*/
 	public SSDArray getArray(String name)
 	{
 		try
 		{
-			if(!objects.containsKey(name))
+			if(!SSDFUtils.containsKeyStartsWith(objects, name))
 				throw new NoSuchFieldException
 				("The array object '" + name + "' does not exist!");
 			
@@ -114,7 +115,7 @@ public class SSDArray implements Iterable<SSDObject>
 			for(Iterator<Entry<String, SSDObject>> it = objects.entrySet().iterator(); it.hasNext();)
 			{
 				Entry<String, SSDObject> entry = it.next();
-				if(entry.getKey().startsWith(name))
+				if(entry.getKey().startsWith(name) && !entry.getKey().equals(name))
 					map.put(this.name + (this.name.isEmpty() ? "" : ".") + entry.getKey().substring(name.length() + (name.isEmpty() ? 0 : 1)),
 							entry.getValue());
 			}
@@ -125,6 +126,15 @@ public class SSDArray implements Iterable<SSDObject>
 		{ ex.printStackTrace(); }
 		
 		return null;
+	}
+	
+	/**
+	 * Gets an array of all existing objects.
+	 * @return The SSD Array object with all
+	 * 		   existing objects*/
+	public SSDArray getAll()
+	{
+		return getArray("");
 	}
 	
 	/**

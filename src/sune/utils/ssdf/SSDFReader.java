@@ -15,7 +15,7 @@ public class SSDFReader
 {
 	/**
 	 * The main SSD Array object*/
-	private SSDArray array;
+	protected SSDArray array;
 	
 	/**
 	 * Opening object brackets*/
@@ -66,7 +66,7 @@ public class SSDFReader
 			
 			String line = "";
 			while((line = reader.readLine()) != null)
-				builder.append(line);
+				builder.append(line).append("\n");
 			
 			reader.close();
 			return builder.toString();
@@ -84,21 +84,55 @@ public class SSDFReader
 	 * @return The formatted string*/
 	private String format(String string)
 	{
+		// Is in double-quoted
 		boolean idq = false;
+		// Is in single-quoted
 		boolean isq = false;
+		// Is escaped
+		boolean esc = false;
+		
+		// Is line-commented
+		boolean islc = false;
+		// Is block-commented
+		boolean isbc = false;
+		
+		/* How many characters should be
+		 * skipped*/
+		int skip = 0;
 		
 		StringBuilder sb = new StringBuilder();
 		for(int p = 0; p < string.length(); p++)
 		{
+			// Characters skipping
+			if(skip > 0) { skip--; continue; }
+			
+			// Gets character on the position
 			char c = string.charAt(p);
 			
-			if(c == '\"' && !isq) idq = !idq;
-			if(c == '\'' && !idq) isq = !isq;
+			// Quoting
+			if(c == '\"' && !isq && !esc) idq = !idq;
+			if(c == '\'' && !idq && !esc) isq = !isq;
 			
-			if((c == ' ' || c == '\t' || c == '\n' || c == '\r') && !(idq || isq))
+			// Line comments support
+			if(c == '#' && !(idq || isq)) 			islc = true;
+			if((c == '\n' || c == '\r') && islc)	islc = false;
+			
+			// Block comments support
+			if((c == '/' && string.charAt(p+1) == '*') && !(idq || isq)) { isbc = true; continue; }
+			if((c == '*' && string.charAt(p+1) == '/') && !(idq || isq)) { isbc = false; skip = 1; continue; }
+
+			// Ignores special characters or comments
+			if(((c == ' ' || c == '\t' || c == '\n' || c == '\r') && !(idq || isq)) || islc || isbc)
 				continue;
 			
+			// Adds the character
 			sb.append(c);
+			
+			/* Removes the escaping. This allows to escape
+			 * only one character at the time.*/
+			if(esc)	esc = false;
+			// Escapes the next character
+			if(c == '\\') esc = true;
 		}
 		
 		return sb.toString();
@@ -120,14 +154,19 @@ public class SSDFReader
 	 * @return The formatted object's value*/
 	private String formatValue(String value)
 	{
+		// Is in double-quoted
 		boolean idq = false;
+		// Is in single-quoted
 		boolean isq = false;
+		// Is escaped
+		boolean esc = false;
+		// Is a digit
 		boolean dig = false;
 		
 		// Special words
 		boolean add = false;
 		int addInt 	= 0;
-
+		
 		StringBuilder sb = new StringBuilder();
 		for(int p = 0; p < value.length(); p++)
 		{
@@ -136,9 +175,12 @@ public class SSDFReader
 			if(p == 0 && Character.isDigit(c))
 				dig = true;
 
-			if(c == '\"' && !isq) idq = !idq;
-			if(c == '\'' && !idq) isq = !isq;
-
+			// Quoting
+			if(c == '\"' && !isq && !esc) idq = !idq;
+			if(c == '\'' && !idq && !esc) isq = !isq;
+			// Escapes the next character
+			if(c == '\\') { esc = true; continue; }
+			
 			if(!dig && !(isq || idq) && !add)
 			{
 				int k = 0;
@@ -165,6 +207,10 @@ public class SSDFReader
 			
 			if((dig && (Character.isDigit(c) || c == '.')) || (isq || idq) || ((!idq && c == '\"') || (!isq && c == '\'')) || (add && addInt-- > 0))
 				sb.append(c);
+			
+			/* Removes the escaping. This allows to escape
+			 * only one character at the time.*/
+			if(esc)	esc = false;
 		}
 
 		return sb.toString();
@@ -201,13 +247,10 @@ public class SSDFReader
 			if(c == openBrackets) 	b++;
 			if(c == closeBrackets) 	b--;
 			
-			if(b < 0)
-			{
-				l = 1;
+			if(b == 0)
 				break;
-			}
 		}
-		
+
 		return SSDFUtils.substringEnd(sb.toString(), 0, l);
 	}
 	
@@ -221,12 +264,12 @@ public class SSDFReader
 	 * @return The Map (list) of all read objects*/
 	private SSDArray getObjects(String string, String parentName, boolean array)
 	{
-		// Is in double-quotes
+		// Is in double-quoted
 		boolean idq = false;
-		// is in single-quotes
+		// Is in single-quoted
 		boolean isq = false;
 		// Is escaped
-		boolean esp = false;
+		boolean esc = false;
 
 		// Can write name
 		boolean wn = !array;
@@ -242,11 +285,11 @@ public class SSDFReader
 		for(int p = 0; p < string.length(); p++)
 		{
 			char c = string.charAt(p);
-		
+
 			if(wn || wv)
 				sb.append(c);
 			
-			if(c == nvd)
+			if(c == nvd && !(idq || isq))
 			{
 				lastName = formatName(sb.toString());
 				
@@ -255,7 +298,7 @@ public class SSDFReader
 				wv = true;
 			}
 			
-			if(c == itd || p == string.length()-1)
+			if((c == itd && !(idq || isq)) || p == string.length()-1)
 			{
 				String name = parentName + (parentName.isEmpty() ? "" : ".") + (array ? Integer.toString(lastCount++) : lastName);
 				ssdArray.put(name, new SSDObject(name, formatValue(sb.toString())));
@@ -265,9 +308,9 @@ public class SSDFReader
 				wv = array;
 			}
 			
-			if(c == oOB || c == oAB)
+			if((c == oOB || c == oAB) && !(idq || isq))
 			{
-				String content = getBracketsContent(string.substring(p+1), c == oAB ? oAB : oOB, c == oAB ? cAB : cOB);
+				String content = getBracketsContent(string.substring(p), c == oAB ? oAB : oOB, c == oAB ? cAB : cOB);
 				SSDArray ssdar = getObjects(content, parentName + (parentName.isEmpty() ? "" : ".") +
 										    (array ? Integer.toString(lastCount++) : lastName), c == oAB);
 				
@@ -276,10 +319,15 @@ public class SSDFReader
 				continue;
 			}
 			
-			esp = false;
-			if(c == '\\' && !esp) esp = true;
-			if(c == '\"' && !isq) idq = !idq;
-			if(c == '\'' && !idq) isq = !isq;
+			// Quoting
+			if(c == '\"' && !isq && !esc) idq = !idq;
+			if(c == '\'' && !idq && !esc) isq = !isq;
+			
+			/* Removes the escaping. This allows to escape
+			 * only one character at the time.*/
+			if(esc)	esc = false;
+			// Escapes the next character
+			if(c == '\\') { esc = true; continue; }
 		}
 
 		return ssdArray;
@@ -296,7 +344,7 @@ public class SSDFReader
 	 * 		   prevent this exception.
 	 * 
 	 * @param name The name of the object to get
-	 * @return The object*/
+	 * @return The SSD object*/
 	public SSDObject getObject(String name)
 	{
 		return array.getObject(name);
@@ -314,11 +362,20 @@ public class SSDFReader
 	 * 		   prevent this exception.
 	 * 
 	 * @param name The name of the array to get
-	 * @return The Data Array object with all objects in the
+	 * @return The SSD Array object with all objects in the
 	 * 		   given array*/
 	public SSDArray getArray(String name)
 	{
 		return array.getArray(name);
+	}
+	
+	/**
+	 * Gets an array of all existing objects.
+	 * @return The SSD Array object with all
+	 * 		   existing objects*/
+	public SSDArray getAll()
+	{
+		return array.getAll();
 	}
 	
 	/**
