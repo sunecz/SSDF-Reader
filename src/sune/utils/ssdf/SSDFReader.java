@@ -51,6 +51,14 @@ public class SSDFReader
 	{
 		this.array = getObjects(format(getContent(file)));
 	}
+	
+	/**
+	 * Creates new instance of SSDF Reader
+	 * @param content The content of SSDF file in SSDF Syntax*/
+	public SSDFReader(String content)
+	{
+		this.array = getObjects(format(content));
+	}
 
 	/**
 	 * Gets the content of the given file
