@@ -182,12 +182,30 @@ public class SSDArray implements Iterable<SSDObject>
 	}
 	
 	/**
+	 * Sets the object
+	 * @param name 	 The object's name
+	 * @param object The object*/
+	public void setObject(String name, SSDObject object)
+	{
+		objects.put(name, object);
+	}
+	
+	/**
 	 * Sets the array
 	 * @param name 	The array's name
 	 * @param array The Map (list) of all objects to set*/
 	public void setArray(String name, Map<String, SSDObject> array)
 	{
 		objects.putAll(array);
+	}
+	
+	/**
+	 * Sets the array
+	 * @param name 	The array's name
+	 * @param array The array object*/
+	public void setArray(String name, SSDArray array)
+	{
+		objects.putAll(array.objects);
 	}
 	
 	/**
@@ -207,6 +225,18 @@ public class SSDArray implements Iterable<SSDObject>
 	public void removeObject(String name)
 	{
 		objects.remove(name);
+	}
+	
+	/**
+	 * Gets all objects that are stored in the array
+	 * @return The Map (list) of all stored objects*/
+	protected Map<String, SSDObject> getAllObjects()
+	{
+		Map<String, SSDObject> newObjects = new HashMap<>();
+		for(Entry<String, SSDObject> entry : objects.entrySet())
+			newObjects.put(entry.getKey(), entry.getValue());
+		
+		return newObjects;
 	}
 	
 	/**

@@ -2,6 +2,7 @@ package sune.utils.ssdf;
 
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
@@ -60,7 +61,21 @@ public class SSDFUtils
 	{
 		try
 		{
-			return new File(getResource(path).toURI());
+			File file = File.createTempFile("ssdf_", ".tmp");
+			file.deleteOnExit();
+			
+			InputStream is 		= getResourceAsStream(path);
+			FileOutputStream os = new FileOutputStream(file);
+			byte[] buffer 		= new byte[4096];
+			
+			int read;
+			while((read = is.read(buffer)) != -1)
+				os.write(buffer, 0, read);
+			
+			os.close();
+			is.close();
+			
+			return file;
 		}
 		catch(Exception ex) {}
 		
