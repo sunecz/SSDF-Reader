@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
  * useful methods for manipulating with objects
  * in SSD Files.
  * @author Sune*/
-public class SSDFReader
+public class SSDFCore
 {
 	/**
 	 * The main SSD Array object*/
@@ -49,21 +49,28 @@ public class SSDFReader
 	};
 	
 	/**
-	 * Creates new instance of SSDF Reader
+	 * Creates new instance of SSDF Core*/
+	public SSDFCore()
+	{
+		this("");
+	}
+	
+	/**
+	 * Creates new instance of SSDF Core
+	 * @param content The content of SSDF file in SSDF Syntax*/
+	public SSDFCore(String content)
+	{
+		this.array = getObjects(format(content));
+	}
+	
+	/**
+	 * Creates new instance of SSDF Core
 	 * @param file The file object to read*/
-	public SSDFReader(File file)
+	public SSDFCore(File file)
 	{
 		this.array = getObjects(format(getContent(file)));
 	}
 	
-	/**
-	 * Creates new instance of SSDF Reader
-	 * @param content The content of SSDF file in SSDF Syntax*/
-	public SSDFReader(String content)
-	{
-		this.array = getObjects(format(content));
-	}
-
 	/**
 	 * Gets the content of the given file
 	 * @param file The file object from where to get the
@@ -557,21 +564,19 @@ public class SSDFReader
 	}
 	
 	/**
-	 * Sets the array
-	 * @param name 	The array's name
+	 * Sets the array (from a map of objects)
 	 * @param array The Map (list) of all objects to set*/
-	public void setArray(String name, Map<String, SSDObject> array)
+	public void setArray(Map<String, SSDObject> array)
 	{
-		array.putAll(array);
+		this.array.putAll(array);
 	}
 	
 	/**
 	 * Sets the array
-	 * @param name 	The array's name
 	 * @param array The array object*/
-	public void setArray(String name, SSDArray array)
+	public void setArray(SSDArray array)
 	{
-		array.putAll(array.getAllObjects());
+		this.array.putAll(array.getAllObjects());
 	}
 	
 	/**
