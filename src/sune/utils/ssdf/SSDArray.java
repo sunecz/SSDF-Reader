@@ -205,7 +205,7 @@ public class SSDArray implements Iterable<SSDObject>
 	 * @param array The array object*/
 	public void setArray(String name, SSDArray array)
 	{
-		objects.putAll(array.objects);
+		objects.putAll(array.getAllObjects());
 	}
 	
 	/**

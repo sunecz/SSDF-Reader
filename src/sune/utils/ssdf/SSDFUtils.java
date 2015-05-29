@@ -144,4 +144,18 @@ public class SSDFUtils
 		
 		return false;
 	}
+	
+	/**
+	 * Repeats the string {@code number}-times.
+	 * @param string The string to repeat
+	 * @param number The number of repetitions
+	 * @return The repeated string*/
+	public static String repeatString(String string, int number)
+	{
+		StringBuilder sb = new StringBuilder();
+		for(int i = 0; i < number; i++)
+			sb.append(string);
+		
+		return sb.toString();
+	}
 }

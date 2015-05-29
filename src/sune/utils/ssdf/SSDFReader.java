@@ -3,8 +3,12 @@ package sune.utils.ssdf;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
+import java.util.regex.Pattern;
 
 /**
  * Helps with reading SSDF Syntax and contains
@@ -342,6 +346,119 @@ public class SSDFReader
 	}
 	
 	/**
+	 * Gets the content (all the objects) as a string.
+	 * @return The content as a string.*/
+	public String getContentString()
+	{
+		StringBuilder sb 				= new StringBuilder();
+		Map<String, SSDArray> arrays 	= new HashMap<>();
+		Map<String, SSDObject> objects 	= array.getAllObjects();
+		
+		for(Entry<String, SSDObject> entry : objects.entrySet())
+		{
+			String keyPath 	  = entry.getKey();
+			String[] splitKey = keyPath.split("\\.");
+			
+			while(splitKey.length > 1)
+			{
+				splitKey = keyPath.split("\\.");
+				keyPath	 = String.join(".", Arrays.copyOfRange(splitKey, 0, splitKey.length-1)).trim();
+				
+				if(!keyPath.isEmpty() && !arrays.containsKey(keyPath))
+					arrays.put(keyPath, new SSDArray(new HashMap<>(), keyPath));
+			}
+		}
+		
+		sb.append("{\n");
+		sb.append(getArrayContentString(
+			"", arrays, 1, false));
+		sb.append("\n}");
+		
+		return sb.toString();
+	}
+	
+	// HELPS WITH GETTING THE CONTENT AS A STRING
+	private String getArrayContentString(String startsWith, Map<String, SSDArray> arrays, int depth, boolean wasItems)
+	{
+		StringBuilder sb 				= new StringBuilder();
+		Map<String, SSDObject> objects 	= array.getAllObjects();
+		
+		boolean isFirstArray = true;
+		for(Entry<String, SSDArray> array : arrays.entrySet())
+		{
+			String arrayKey = array.getKey();
+			String[] splitArrayKey = arrayKey.split("\\.");
+			
+			if(arrayKey.startsWith(startsWith) && splitArrayKey.length == depth)
+			{
+				String arrayName = splitArrayKey[splitArrayKey.length-1];
+				String arrayTab	 = SSDFUtils.repeatString("\t", depth);
+				boolean isArray  = Pattern.matches("\\d+", arrayName);
+				
+				if(!isFirstArray || wasItems) sb.append(",\n\n");
+				if(isFirstArray) 			  isFirstArray = false;
+				
+				if(!isArray)
+				{
+					sb.append(arrayTab);
+					sb.append(arrayName);
+					sb.append(":\n");
+				}
+
+				sb.append(arrayTab);
+				sb.append(isArray ? "[" : "{");
+				sb.append("\n");
+				
+				boolean isFirstItem = true;
+				for(Entry<String, SSDObject> object : objects.entrySet())
+				{
+					String objectKey 		= object.getKey();
+					String[] splitObjectKey = objectKey.split("\\.");
+					
+					if(splitObjectKey.length == depth+1)
+					{
+						String objectPath = String.join(".", Arrays.copyOfRange(splitObjectKey, 0, splitObjectKey.length-1));
+						String objectTab  = SSDFUtils.repeatString("\t", depth+1);
+						String objectName = splitObjectKey[splitObjectKey.length-1];
+						
+						if(arrayKey.equals(objectPath))
+						{
+							if(!isFirstItem) sb.append(",\n");
+							if(isFirstItem)  isFirstItem = false;
+							
+							sb.append(objectTab);
+							sb.append(objectName);
+							sb.append(": ");
+							
+							SSDType objectType = object.getValue().getType();
+							String objectValue = object.getValue().getValue();
+							
+							if(objectType == SSDType.STRING)
+							{
+								sb.append("\"");
+								sb.append(objectValue);
+								sb.append("\"");
+							}
+							else
+							{
+								sb.append(objectValue);
+							}
+						}
+					}
+				}
+				
+				sb.append(getArrayContentString(
+					arrayKey, arrays, depth+1, !isFirstItem));
+				sb.append("\n");
+				sb.append(arrayTab);
+				sb.append(isArray ? "]" : "}");
+			}
+		}
+		
+		return sb.toString();
+	}
+	
+	/**
 	 * Gets the object by the given name.
 	 * 
 	 * @throws NoSuchFieldException
@@ -431,12 +548,30 @@ public class SSDFReader
 	}
 	
 	/**
+	 * Sets the object
+	 * @param name 	 The object's name
+	 * @param object The object*/
+	public void setObject(String name, SSDObject object)
+	{
+		array.put(name, object);
+	}
+	
+	/**
 	 * Sets the array
 	 * @param name 	The array's name
 	 * @param array The Map (list) of all objects to set*/
 	public void setArray(String name, Map<String, SSDObject> array)
 	{
 		array.putAll(array);
+	}
+	
+	/**
+	 * Sets the array
+	 * @param name 	The array's name
+	 * @param array The array object*/
+	public void setArray(String name, SSDArray array)
+	{
+		array.putAll(array.getAllObjects());
 	}
 	
 	/**
@@ -455,5 +590,13 @@ public class SSDFReader
 	public void removeObject(String name)
 	{
 		array.removeObject(name);
+	}
+	
+	/**
+	 * Gets all objects that are stored in the array
+	 * @return The Map (list) of all stored objects*/
+	public Map<String, SSDObject> getAllObjects()
+	{
+		return array.getAllObjects();
 	}
 }
