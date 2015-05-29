@@ -230,7 +230,7 @@ public class SSDArray implements Iterable<SSDObject>
 	/**
 	 * Gets all objects that are stored in the array
 	 * @return The Map (list) of all stored objects*/
-	protected Map<String, SSDObject> getAllObjects()
+	public Map<String, SSDObject> getAllObjects()
 	{
 		Map<String, SSDObject> newObjects = new HashMap<>();
 		for(Entry<String, SSDObject> entry : objects.entrySet())
