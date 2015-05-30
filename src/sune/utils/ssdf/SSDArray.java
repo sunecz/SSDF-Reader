@@ -54,11 +54,31 @@ public class SSDArray implements Iterable<SSDObject>
 	
 	/**
 	 * Creates new instance of Data Array
-	 * @param objects The Map (list) of objects*/
-	public SSDArray(Map<String, SSDObject> objects, String name)
+	 * @param name The name of the array*/
+	public SSDArray(String name)
 	{
-		this.objects = objects;
+		this(name, new HashMap<>());
+	}
+	
+	/**
+	 * Creates new instance of Data Array
+	 * @param name The name of the array
+	 * @param objects The Map (list) of objects*/
+	public SSDArray(String name, Map<String, SSDObject> objects)
+	{
 		this.name 	 = name;
+		this.objects = objects;
+	}
+	
+	/**
+	 * Gets the true name of an object name. It
+	 * is name with the name of the array at the
+	 * beginning.
+	 * @param name The object name
+	 * @return The true name of the object*/
+	private String getTrueName(String name)
+	{
+		return this.name + (this.name.isEmpty() ? "" : ".") + name;
 	}
 	
 	/**
@@ -77,11 +97,12 @@ public class SSDArray implements Iterable<SSDObject>
 	{
 		try
 		{
-			if(!objects.containsKey(name))
+			String objectName = getTrueName(name);
+			if(!objects.containsKey(objectName))
 				throw new NoSuchFieldException
 				("The object '" + name + "' does not exist!");
 			
-			return objects.get(name);
+			return objects.get(objectName);
 		}
 		catch(NoSuchFieldException ex)
 		{ ex.printStackTrace(); }
@@ -107,7 +128,8 @@ public class SSDArray implements Iterable<SSDObject>
 	{
 		try
 		{
-			if(!SSDFUtils.containsKeyStartsWith(objects, name))
+			String objectName = getTrueName(name);
+			if(!SSDFUtils.containsKeyStartsWith(objects, objectName))
 				throw new NoSuchFieldException
 				("The array object '" + name + "' does not exist!");
 			
@@ -115,12 +137,13 @@ public class SSDArray implements Iterable<SSDObject>
 			for(Iterator<Entry<String, SSDObject>> it = objects.entrySet().iterator(); it.hasNext();)
 			{
 				Entry<String, SSDObject> entry = it.next();
-				if(entry.getKey().startsWith(name) && !entry.getKey().equals(name))
-					map.put(this.name + (this.name.isEmpty() ? "" : ".") + entry.getKey().substring(name.length() + (name.isEmpty() ? 0 : 1)),
+				if(entry.getKey().startsWith(objectName) && !entry.getKey().equals(objectName))
+					map.put(this.name + (this.name.isEmpty() ? "" : ".") +
+							entry.getKey().substring(objectName.length() + (objectName.isEmpty() ? 0 : 1)),
 							entry.getValue());
 			}
 			
-			return new SSDArray(map, this.name + (this.name.isEmpty() ? "" : ".") + name);
+			return new SSDArray(this.name + (this.name.isEmpty() ? "" : ".") + objectName, map);
 		}
 		catch(NoSuchFieldException ex)
 		{ ex.printStackTrace(); }
@@ -143,7 +166,8 @@ public class SSDArray implements Iterable<SSDObject>
 	 * @param value New object's value*/
 	public void setObject(String name, String value)
 	{
-		objects.put(name, new SSDObject(this.name + (this.name.isEmpty() ? "" : ".") + name, "\"" + value + "\""));
+		String objectName = getTrueName(name);
+		objects.put(objectName, new SSDObject(objectName, "\"" + value + "\""));
 	}
 	
 	/**
@@ -152,7 +176,8 @@ public class SSDArray implements Iterable<SSDObject>
 	 * @param value New object's value*/
 	public void setObject(String name, int value)
 	{
-		objects.put(name, new SSDObject(this.name + (this.name.isEmpty() ? "" : ".") + name, Integer.toString(value)));
+		String objectName = getTrueName(name);
+		objects.put(objectName, new SSDObject(objectName, Integer.toString(value)));
 	}
 	
 	/**
@@ -161,7 +186,8 @@ public class SSDArray implements Iterable<SSDObject>
 	 * @param value New object's value*/
 	public void setObject(String name, double value)
 	{
-		objects.put(name, new SSDObject(this.name + (this.name.isEmpty() ? "" : ".") + name, Double.toString(value)));
+		String objectName = getTrueName(name);
+		objects.put(objectName, new SSDObject(objectName, Double.toString(value)));
 	}
 	
 	/**
@@ -170,7 +196,8 @@ public class SSDArray implements Iterable<SSDObject>
 	 * @param value New object's value*/
 	public void setObject(String name, boolean value)
 	{
-		objects.put(name, new SSDObject(this.name + (this.name.isEmpty() ? "" : ".") + name, Boolean.toString(value)));
+		String objectName = getTrueName(name);
+		objects.put(objectName, new SSDObject(objectName, Boolean.toString(value)));
 	}
 	
 	/**
@@ -178,7 +205,8 @@ public class SSDArray implements Iterable<SSDObject>
 	 * @param name 	The object's name*/
 	public void setObject(String name)
 	{
-		objects.put(name, new SSDObject(this.name + (this.name.isEmpty() ? "" : ".") + name, "null"));
+		String objectName = getTrueName(name);
+		objects.put(objectName, new SSDObject(objectName, "null"));
 	}
 	
 	/**
@@ -187,23 +215,21 @@ public class SSDArray implements Iterable<SSDObject>
 	 * @param object The object*/
 	public void setObject(String name, SSDObject object)
 	{
-		objects.put(name, object);
+		objects.put(getTrueName(name), object);
 	}
 	
 	/**
-	 * Sets the array
-	 * @param name 	The array's name
+	 * Sets the array (from a map of objects)
 	 * @param array The Map (list) of all objects to set*/
-	public void setArray(String name, Map<String, SSDObject> array)
+	public void setArray(Map<String, SSDObject> array)
 	{
 		objects.putAll(array);
 	}
 	
 	/**
 	 * Sets the array
-	 * @param name 	The array's name
 	 * @param array The array object*/
-	public void setArray(String name, SSDArray array)
+	public void setArray(SSDArray array)
 	{
 		objects.putAll(array.getAllObjects());
 	}
@@ -215,7 +241,7 @@ public class SSDArray implements Iterable<SSDObject>
 	 * @return True, if the object was found, otherwise false*/
 	public boolean hasObject(String name)
 	{
-		return objects.containsKey(name);
+		return objects.containsKey(getTrueName(name));
 	}
 	
 	/**
@@ -224,7 +250,7 @@ public class SSDArray implements Iterable<SSDObject>
 	 * @param name The object's name*/
 	public void removeObject(String name)
 	{
-		objects.remove(name);
+		objects.remove(getTrueName(name));
 	}
 	
 	/**

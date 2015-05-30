@@ -372,13 +372,51 @@ public class SSDFCore
 				keyPath	 = String.join(".", Arrays.copyOfRange(splitKey, 0, splitKey.length-1)).trim();
 				
 				if(!keyPath.isEmpty() && !arrays.containsKey(keyPath))
-					arrays.put(keyPath, new SSDArray(new HashMap<>(), keyPath));
+					arrays.put(keyPath, new SSDArray(keyPath));
 			}
 		}
 		
 		sb.append("{\n");
-		sb.append(getArrayContentString(
-			"", arrays, 1, false));
+		
+		boolean isFirstItem = true;
+		for(Entry<String, SSDObject> entry : objects.entrySet())
+		{
+			String objectName = entry.getKey();
+			String[] splitKey = objectName.split("\\.");
+			
+			if(splitKey.length == 1 && !arrays.containsKey(objectName))
+			{
+				if(!isFirstItem) sb.append(",\n");
+				if(isFirstItem)  isFirstItem = false;
+				
+				SSDObject object 	= entry.getValue();
+				SSDType objectType 	= object.getType();
+				String objectValue 	= object.getValue();
+				
+				sb.append("\t");
+				sb.append(objectName);
+				sb.append(": ");
+				
+				if(objectType == SSDType.STRING)
+				{
+					sb.append("\"");
+					sb.append(objectValue);
+					sb.append("\"");
+				}
+				else
+				{
+					sb.append(objectValue);
+				}
+			}
+		}
+		
+		String content = getArrayContentString(
+			"", arrays, 1, false);
+		
+		if(!content.isEmpty())
+			sb.append(",\n\n");
+		
+		sb.append(content);
 		sb.append("\n}");
 		
 		return sb.toString();
@@ -516,7 +554,7 @@ public class SSDFCore
 	 * @param value New object's value*/
 	public void setObject(String name, String value)
 	{
-		array.put(name, new SSDObject(name, "\"" + value + "\""));
+		array.setObject(name, value);
 	}
 	
 	/**
@@ -525,7 +563,7 @@ public class SSDFCore
 	 * @param value New object's value*/
 	public void setObject(String name, int value)
 	{
-		array.put(name, new SSDObject(name, Integer.toString(value)));
+		array.setObject(name, value);
 	}
 	
 	/**
@@ -534,7 +572,7 @@ public class SSDFCore
 	 * @param value New object's value*/
 	public void setObject(String name, double value)
 	{
-		array.put(name, new SSDObject(name, Double.toString(value)));
+		array.setObject(name, value);
 	}
 	
 	/**
@@ -543,7 +581,7 @@ public class SSDFCore
 	 * @param value New object's value*/
 	public void setObject(String name, boolean value)
 	{
-		array.put(name, new SSDObject(name, Boolean.toString(value)));
+		array.setObject(name, value);
 	}
 	
 	/**
@@ -551,7 +589,7 @@ public class SSDFCore
 	 * @param name 	The object's name*/
 	public void setObject(String name)
 	{
-		array.put(name, new SSDObject(name, "null"));
+		array.setObject(name);
 	}
 	
 	/**
@@ -560,7 +598,7 @@ public class SSDFCore
 	 * @param object The object*/
 	public void setObject(String name, SSDObject object)
 	{
-		array.put(name, object);
+		array.setObject(name, object);
 	}
 	
 	/**
@@ -568,7 +606,7 @@ public class SSDFCore
 	 * @param array The Map (list) of all objects to set*/
 	public void setArray(Map<String, SSDObject> array)
 	{
-		this.array.putAll(array);
+		this.array.setArray(array);
 	}
 	
 	/**
@@ -576,7 +614,7 @@ public class SSDFCore
 	 * @param array The array object*/
 	public void setArray(SSDArray array)
 	{
-		this.array.putAll(array.getAllObjects());
+		this.array.setArray(array);
 	}
 	
 	/**
