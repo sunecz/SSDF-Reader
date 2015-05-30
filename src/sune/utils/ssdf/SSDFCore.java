@@ -379,6 +379,7 @@ public class SSDFCore
 		sb.append("{\n");
 		
 		boolean isFirstItem = true;
+		boolean dataWritten = false;
 		for(Entry<String, SSDObject> entry : objects.entrySet())
 		{
 			String objectName = entry.getKey();
@@ -407,13 +408,16 @@ public class SSDFCore
 				{
 					sb.append(objectValue);
 				}
+				
+				if(!dataWritten)
+					dataWritten = true;
 			}
 		}
 		
 		String content = getArrayContentString(
 			"", arrays, 1, false);
 		
-		if(!content.isEmpty())
+		if(!content.isEmpty() && dataWritten)
 			sb.append(",\n\n");
 		
 		sb.append(content);
