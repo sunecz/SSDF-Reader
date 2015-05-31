@@ -231,7 +231,24 @@ public class SSDArray implements Iterable<SSDObject>
 	 * @param array The array object*/
 	public void setArray(SSDArray array)
 	{
-		objects.putAll(array.getAllObjects());
+		Map<String, SSDObject> map = new HashMap<>();
+		for(Entry<String, SSDObject> entry : array.getAllObjects().entrySet())
+		{
+			String fullName 	= getTrueName(entry.getKey());
+			SSDObject object 	= entry.getValue();
+			SSDType objectType  = object.getType();
+			String objectValue	= object.getValue();
+			
+			if(objectType == SSDType.STRING)
+				objectValue = "\"" + objectValue + "\"";
+			
+			SSDObject newObject = new SSDObject(fullName,
+				object.getType(), objectValue);
+			
+			map.put(fullName, newObject);
+		}
+		
+		objects.putAll(map);
 	}
 	
 	/**

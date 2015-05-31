@@ -31,6 +31,18 @@ public class SSDObject
 	}
 	
 	/**
+	 * Creates new instance of Data Object
+	 * @param name 	The object's name
+	 * @param type	The object's type
+	 * @param value The object's value*/
+	protected SSDObject(String name, SSDType type, String value)
+	{
+		this.name 	= name;
+		this.type 	= type;
+		this.value 	= SSDFUtils.regex(type.getRegex(), value, 1);
+	}
+	
+	/**
 	 * Finds the Data Type of the object defined by the
 	 * object's value
 	 * @param value The object's value*/
