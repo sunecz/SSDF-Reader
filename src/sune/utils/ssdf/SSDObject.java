@@ -3,9 +3,9 @@ package sune.utils.ssdf;
 import java.util.regex.Pattern;
 
 /**
- * Represents a data object that is used
- * for storing information about objects
- * in SSD File.
+ * Represents a data object that is used for storing
+ * information about objects in SSD File.<br>
+ * It is also the base of SSD File.
  * @author Sune*/
 public class SSDObject
 {
@@ -64,8 +64,45 @@ public class SSDObject
 	}
 	
 	/**
-	 * Gets the value of object
+	 * Gets the string value of object
 	 * @return The object's value*/
+	public String getStringValue()
+	{
+		return value;
+	}
+	
+	/**
+	 * Gets the number value of object
+	 * @return The object's value*/
+	public int getIntegerValue()
+	{
+		return Integer.parseInt(value);
+	}
+	
+	/**
+	 * Gets the floating-point number value of object
+	 * @return The object's value*/
+	public double getDoubleValue()
+	{
+		return Double.parseDouble(value);
+	}
+	
+	/**
+	 * Gets the truth value of object
+	 * @return The object's value*/
+	public boolean getBooleanValue()
+	{
+		return Boolean.parseBoolean(value);
+	}
+	
+	/**
+	 * Gets the value of object
+	 * @deprecated Due to new methods this method
+	 * 		should not be used. It is just a default
+	 * 		method for getting values when you do not
+	 * 		know certainly the type of the value.
+	 * @return The object's value*/
+	@Deprecated
 	public String getValue()
 	{
 		return value;

@@ -20,6 +20,10 @@ public class SSDArray implements Iterable<SSDObject>
 	private final String name;
 	
 	/**
+	 * Current array index*/
+	private int currentIndex;
+	
+	/**
 	 * Creates new instance of Data Array*/
 	protected SSDArray()
 	{
@@ -83,14 +87,6 @@ public class SSDArray implements Iterable<SSDObject>
 	
 	/**
 	 * Gets the object by the given name.
-	 * 
-	 * @throws NoSuchFieldException
-	 * 
-	 * 		   When the object does not exist
-	 * 		   in the array. You should use method
-	 * 		   <code>hasObject(name)</code> to
-	 * 		   prevent this exception.
-	 * 
 	 * @param name The name of the object to get
 	 * @return The SSD object*/
 	public SSDObject getObject(String name)
@@ -113,14 +109,6 @@ public class SSDArray implements Iterable<SSDObject>
 	/**
 	 * Gets an array of all objects that are in the
 	 * given array object.
-	 * 
-	 * @throws NoSuchFieldException
-	 * 
-	 * 		   When the array object does not exist
-	 * 		   in the array. You should use method
-	 * 		   <code>hasObject(name)</code> to
-	 * 		   prevent this exception.
-	 * 
 	 * @param name The name of the array to get
 	 * @return The SSD Array object with all objects in the
 	 * 		   given array*/
@@ -155,7 +143,7 @@ public class SSDArray implements Iterable<SSDObject>
 	 * Gets an array of all existing objects.
 	 * @return The SSD Array object with all
 	 * 		   existing objects*/
-	public SSDArray getAll()
+	protected SSDArray getAll()
 	{
 		return getArray("");
 	}
@@ -206,7 +194,7 @@ public class SSDArray implements Iterable<SSDObject>
 	public void setObject(String name)
 	{
 		String objectName = getTrueName(name);
-		objects.put(objectName, new SSDObject(objectName, "null"));
+		objects.put(objectName, new SSDObject(objectName, SSDType.NULL, "null"));
 	}
 	
 	/**
@@ -219,17 +207,127 @@ public class SSDArray implements Iterable<SSDObject>
 	}
 	
 	/**
-	 * Sets the array (from a map of objects)
+	 * Sets the object value on the array's index
+	 * @param index	The index
+	 * @param value New object's value*/
+	public void setObject(int index, String value)
+	{
+		String objectName = getTrueName(Integer.toString(index));
+		objects.put(objectName, new SSDObject(objectName, "\"" + value + "\""));
+	}
+	
+	/**
+	 * Sets the object value on the array's index
+	 * @param index	The index
+	 * @param value New object's value*/
+	public void setObject(int index, int value)
+	{
+		String objectName = getTrueName(Integer.toString(index));
+		objects.put(objectName, new SSDObject(objectName, Integer.toString(value)));
+	}
+	
+	/**
+	 * Sets the object value on the array's index
+	 * @param index	The index
+	 * @param value New object's value*/
+	public void setObject(int index, double value)
+	{
+		String objectName = getTrueName(Integer.toString(index));
+		objects.put(objectName, new SSDObject(objectName, Double.toString(value)));
+	}
+	
+	/**
+	 * Sets the object value on the array's index
+	 * @param index	The index
+	 * @param value New object's value*/
+	public void setObject(int index, boolean value)
+	{
+		String objectName = getTrueName(Integer.toString(index));
+		objects.put(objectName, new SSDObject(objectName, Boolean.toString(value)));
+	}
+	
+	/**
+	 * Sets the object value to null on the array's index
+	 * @param index	The index*/
+	public void setObject(int index)
+	{
+		String objectName = getTrueName(Integer.toString(index));
+		objects.put(objectName, new SSDObject(objectName, SSDType.NULL, "null"));
+	}
+	
+	/**
+	 * Sets the object on the array's index
+	 * @param index	 The index
+	 * @param object The object*/
+	public void setObject(int index, SSDObject object)
+	{
+		objects.put(getTrueName(Integer.toString(index)), object);
+	}
+	
+	/**
+	 * Appends the string object
+	 * @param value Object's value*/
+	public void appendObject(String value)
+	{
+		String objectName = getTrueName(Integer.toString(currentIndex++));
+		objects.put(objectName, new SSDObject(objectName, "\"" + value + "\""));
+	}
+	
+	/**
+	 * Appends the number object
+	 * @param value Object's value*/
+	public void appendObject(int value)
+	{
+		String objectName = getTrueName(Integer.toString(currentIndex++));
+		objects.put(objectName, new SSDObject(objectName, Integer.toString(value)));
+	}
+	
+	/**
+	 * Appends the floating-point number object
+	 * @param value Object's value*/
+	public void appendObject(double value)
+	{
+		String objectName = getTrueName(Integer.toString(currentIndex++));
+		objects.put(objectName, new SSDObject(objectName, Double.toString(value)));
+	}
+	
+	/**
+	 * Appends the boolean object
+	 * @param value Object's value*/
+	public void appendObject(boolean value)
+	{
+		String objectName = getTrueName(Integer.toString(currentIndex++));
+		objects.put(objectName, new SSDObject(objectName, Boolean.toString(value)));
+	}
+	
+	/**
+	 * Appends the null object*/
+	public void appendObject()
+	{
+		String objectName = getTrueName(Integer.toString(currentIndex++));
+		objects.put(objectName, new SSDObject(objectName, SSDType.NULL, "null"));
+	}
+	
+	/**
+	 * Appends the object
+	 * @param object The object*/
+	public void appendObject(SSDObject object)
+	{
+		objects.put(getTrueName(Integer.toString(currentIndex++)), object);
+	}
+	
+	/**
+	 * Appends the array (from a map of objects)
 	 * @param array The Map (list) of all objects to set*/
-	public void setArray(Map<String, SSDObject> array)
+	public void appendArray(Map<String, SSDObject> array)
 	{
 		objects.putAll(array);
 	}
 	
 	/**
-	 * Sets the array
+	 * Appends the array
 	 * @param array The array object*/
-	public void setArray(SSDArray array)
+	public void appendArray(SSDArray array)
 	{
 		Map<String, SSDObject> map = new HashMap<>();
 		for(Entry<String, SSDObject> entry : array.getAllObjects().entrySet())
@@ -237,7 +335,7 @@ public class SSDArray implements Iterable<SSDObject>
 			String fullName 	= getTrueName(entry.getKey());
 			SSDObject object 	= entry.getValue();
 			SSDType objectType  = object.getType();
-			String objectValue	= object.getValue();
+			String objectValue	= object.getStringValue();
 			
 			if(objectType == SSDType.STRING)
 				objectValue = "\"" + objectValue + "\"";
@@ -254,11 +352,28 @@ public class SSDArray implements Iterable<SSDObject>
 	/**
 	 * Checks if the SSD File contains an object
 	 * by the given name.
-	 * @param The object's name
+	 * @param name The object's name
 	 * @return True, if the object was found, otherwise false*/
 	public boolean hasObject(String name)
 	{
 		return objects.containsKey(getTrueName(name));
+	}
+	
+	/**
+	 * Checks if the SSD File contains an array
+	 * by the given name.
+	 * @param name The array's name
+	 * @return True, if the array was found, otherwise false*/
+	public boolean hasArray(String name)
+	{
+		for(Entry<String, SSDObject> entry : objects.entrySet())
+		{
+			String objectName = entry.getKey();
+			if(!objectName.equals(name) && objectName.startsWith(name))
+				return true;
+		}
+		
+		return false;
 	}
 	
 	/**
@@ -271,15 +386,32 @@ public class SSDArray implements Iterable<SSDObject>
 	}
 	
 	/**
+	 * Removes the array. When the array
+	 * does not exist, nothing happens.
+	 * @param name The object's name*/
+	public void removeArray(String name)
+	{
+		for(Iterator<Entry<String, SSDObject>> it = objects.entrySet().iterator(); it.hasNext();)
+		{
+			Entry<String, SSDObject> entry = it.next();
+			if(entry.getKey().startsWith(name))
+				it.remove();
+		}
+	}
+	
+	/**
+	 * Clears the whole array.*/
+	public void clear()
+	{
+		objects.clear();
+	}
+	
+	/**
 	 * Gets all objects that are stored in the array
 	 * @return The Map (list) of all stored objects*/
 	public Map<String, SSDObject> getAllObjects()
 	{
-		Map<String, SSDObject> newObjects = new HashMap<>();
-		for(Entry<String, SSDObject> entry : objects.entrySet())
-			newObjects.put(entry.getKey(), entry.getValue());
-		
-		return newObjects;
+		return new HashMap<>(objects);
 	}
 	
 	/**

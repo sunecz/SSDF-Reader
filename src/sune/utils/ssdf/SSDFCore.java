@@ -392,7 +392,7 @@ public class SSDFCore
 				
 				SSDObject object 	= entry.getValue();
 				SSDType objectType 	= object.getType();
-				String objectValue 	= object.getValue();
+				String objectValue 	= object.getStringValue();
 				
 				sb.append("\t");
 				sb.append(objectName);
@@ -426,7 +426,15 @@ public class SSDFCore
 		return sb.toString();
 	}
 	
-	// HELPS WITH GETTING THE CONTENT AS A STRING
+	/**
+	 * Gets the next depth level of stored objects and converts them
+	 * to a string.
+	 * @param startsWith The specified starting name of objects that
+	 * 					 should be contained in the final result.
+	 * @param arrays	 The map of all the arrays
+	 * @param depth		 The depth level
+	 * @param wasItems	 Whether there were some written items or not.
+	 * @return The formatted string of the objects.*/
 	private String getArrayContentString(String startsWith, Map<String, SSDArray> arrays, int depth, boolean wasItems)
 	{
 		StringBuilder sb 				= new StringBuilder();
@@ -442,17 +450,34 @@ public class SSDFCore
 			{
 				String arrayName = splitArrayKey[splitArrayKey.length-1];
 				String arrayTab	 = SSDFUtils.repeatString("\t", depth);
-				boolean isArray  = Pattern.matches("\\d+", arrayName);
+				boolean isArray  = true;
+				
+				for(Entry<String, SSDObject> object : objects.entrySet())
+				{
+					String objectKey 		= object.getKey();
+					String[] splitObjectKey = objectKey.split("\\.");
+					
+					if(splitObjectKey.length == depth+1 && objectKey.startsWith(arrayName))
+					{
+						String formatName = objectKey.substring(arrayName.length()+1);
+						int indexOfDot	  = formatName.indexOf('.');
+						formatName 		  = formatName.substring(0,
+							indexOfDot == -1 ? formatName.length() : indexOfDot);
+						
+						if(!Pattern.matches("\\d+", formatName))
+						{
+							isArray = false;
+							break;
+						}
+					}
+				}
 				
 				if(!isFirstArray || wasItems) sb.append(",\n\n");
 				if(isFirstArray) 			  isFirstArray = false;
 				
-				if(!isArray)
-				{
-					sb.append(arrayTab);
-					sb.append(arrayName);
-					sb.append(":\n");
-				}
+				sb.append(arrayTab);
+				sb.append(arrayName);
+				sb.append(":\n");
 
 				sb.append(arrayTab);
 				sb.append(isArray ? "[" : "{");
@@ -476,11 +501,15 @@ public class SSDFCore
 							if(isFirstItem)  isFirstItem = false;
 							
 							sb.append(objectTab);
-							sb.append(objectName);
-							sb.append(": ");
+							
+							if(!isArray)
+							{
+								sb.append(objectName);
+								sb.append(": ");
+							}
 							
 							SSDType objectType = object.getValue().getType();
-							String objectValue = object.getValue().getValue();
+							String objectValue = object.getValue().getStringValue();
 							
 							if(objectType == SSDType.STRING)
 							{
@@ -508,142 +537,11 @@ public class SSDFCore
 	}
 	
 	/**
-	 * Gets the object by the given name.
-	 * 
-	 * @throws NoSuchFieldException
-	 * 
-	 * 		   When the object does not exist
-	 * 		   in the array. You should use method
-	 * 		   <code>hasObject(name)</code> to
-	 * 		   prevent this exception.
-	 * 
-	 * @param name The name of the object to get
-	 * @return The SSD object*/
-	public SSDObject getObject(String name)
+	 * Gets the main array that contains all the objects.
+	 * @return The main array object*/
+	public SSDArray getArray()
 	{
-		return array.getObject(name);
+		return array;
 	}
 	
-	/**
-	 * Gets an array of all objects that are in the
-	 * given array object.
-	 * 
-	 * @throws NoSuchFieldException
-	 * 
-	 * 		   When the array object does not exist
-	 * 		   in the array. You should use method
-	 * 		   <code>hasObject(name)</code> to
-	 * 		   prevent this exception.
-	 * 
-	 * @param name The name of the array to get
-	 * @return The SSD Array object with all objects in the
-	 * 		   given array*/
-	public SSDArray getArray(String name)
-	{
-		return array.getArray(name);
-	}
-	
-	/**
-	 * Gets an array of all existing objects.
-	 * @return The SSD Array object with all
-	 * 		   existing objects*/
-	public SSDArray getAll()
-	{
-		return array.getAll();
-	}
-	
-	/**
-	 * Sets the object value
-	 * @param name 	The object's name
-	 * @param value New object's value*/
-	public void setObject(String name, String value)
-	{
-		array.setObject(name, value);
-	}
-	
-	/**
-	 * Sets the object value
-	 * @param name 	The object's name
-	 * @param value New object's value*/
-	public void setObject(String name, int value)
-	{
-		array.setObject(name, value);
-	}
-	
-	/**
-	 * Sets the object value
-	 * @param name 	The object's name
-	 * @param value New object's value*/
-	public void setObject(String name, double value)
-	{
-		array.setObject(name, value);
-	}
-	
-	/**
-	 * Sets the object value
-	 * @param name 	The object's name
-	 * @param value New object's value*/
-	public void setObject(String name, boolean value)
-	{
-		array.setObject(name, value);
-	}
-	
-	/**
-	 * Sets the object value to null
-	 * @param name 	The object's name*/
-	public void setObject(String name)
-	{
-		array.setObject(name);
-	}
-	
-	/**
-	 * Sets the object
-	 * @param name 	 The object's name
-	 * @param object The object*/
-	public void setObject(String name, SSDObject object)
-	{
-		array.setObject(name, object);
-	}
-	
-	/**
-	 * Sets the array (from a map of objects)
-	 * @param array The Map (list) of all objects to set*/
-	public void setArray(Map<String, SSDObject> array)
-	{
-		this.array.setArray(array);
-	}
-	
-	/**
-	 * Sets the array
-	 * @param array The array object*/
-	public void setArray(SSDArray array)
-	{
-		this.array.setArray(array);
-	}
-	
-	/**
-	 * Checks if the SSD File contains an object
-	 * by the given name.
-	 * @param The object's name
-	 * @return True, if the object was found, otherwise false*/
-	public boolean hasObject(String name)
-	{
-		return array.hasObject(name);
-	}
-	
-	/**
-	 * Removes the object
-	 * @param name The object's name*/
-	public void removeObject(String name)
-	{
-		array.removeObject(name);
-	}
-	
-	/**
-	 * Gets all objects that are stored in the array
-	 * @return The Map (list) of all stored objects*/
-	public Map<String, SSDObject> getAllObjects()
-	{
-		return array.getAllObjects();
-	}
 }

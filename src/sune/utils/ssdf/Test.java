@@ -8,7 +8,7 @@ public class Test
 	{
 		SSDFCore ssdf = new SSDFCore(SSDFUtils.getResourceAsFile("/test.ssdf"));
 		
-		for(Iterator<SSDObject> it = ssdf.getAll().iterator(); it.hasNext();)
+		for(Iterator<SSDObject> it = ssdf.getArray().iterator(); it.hasNext();)
 			System.out.println(it.next());
 	}
 }
