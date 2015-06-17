@@ -1,5 +1,6 @@
 package sune.utils.ssdf;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.Map;
@@ -93,12 +94,10 @@ public class SSDArray implements Iterable<SSDObject>
 	{
 		try
 		{
-			String objectName = getTrueName(name);
-			if(!objects.containsKey(objectName))
-				throw new NoSuchFieldException
+			if(!hasObject(name)) throw new NoSuchFieldException
 				("The object '" + name + "' does not exist!");
 			
-			return objects.get(objectName);
+			return objects.get(name);
 		}
 		catch(NoSuchFieldException ex)
 		{ ex.printStackTrace(); }
@@ -116,22 +115,26 @@ public class SSDArray implements Iterable<SSDObject>
 	{
 		try
 		{
-			String objectName = getTrueName(name);
-			if(!SSDFUtils.containsKeyStartsWith(objects, objectName))
-				throw new NoSuchFieldException
-				("The array object '" + name + "' does not exist!");
+			if(!hasArray(name)) throw new NoSuchFieldException
+				("The array '" + name + "' does not exist!");
 			
 			Map<String, SSDObject> map = new HashMap<>();
 			for(Iterator<Entry<String, SSDObject>> it = objects.entrySet().iterator(); it.hasNext();)
 			{
 				Entry<String, SSDObject> entry = it.next();
-				if(entry.getKey().startsWith(objectName) && !entry.getKey().equals(objectName))
-					map.put(this.name + (this.name.isEmpty() ? "" : ".") +
-							entry.getKey().substring(objectName.length() + (objectName.isEmpty() ? 0 : 1)),
-							entry.getValue());
+				String entryName 			   = entry.getKey();
+				SSDObject entryObject 		   = entry.getValue();
+				
+				String[] splitEntryName = entryName.split("\\.");
+				String joinedEntryName	= String.join(".", Arrays.copyOfRange(
+					splitEntryName, 0, name.split("\\.").length));
+				
+				if(joinedEntryName.equals(name) && !entryName.equals(name))
+					map.put(entryName.substring(name.length() + (name.isEmpty() ? 0 : 1)),
+							entryObject);
 			}
 			
-			return new SSDArray(this.name + (this.name.isEmpty() ? "" : ".") + objectName, map);
+			return new SSDArray(this.name + (this.name.isEmpty() ? "" : ".") + name, map);
 		}
 		catch(NoSuchFieldException ex)
 		{ ex.printStackTrace(); }
@@ -356,7 +359,7 @@ public class SSDArray implements Iterable<SSDObject>
 	 * @return True, if the object was found, otherwise false*/
 	public boolean hasObject(String name)
 	{
-		return objects.containsKey(getTrueName(name));
+		return objects.containsKey(name);
 	}
 	
 	/**
@@ -488,5 +491,13 @@ public class SSDArray implements Iterable<SSDObject>
 	public Iterator<SSDObject> iterator()
 	{
 		return new SSDArrayIterator();
+	}
+	
+	/**
+	 * Gets the array's name
+	 * @return The name of the array*/
+	public String getName()
+	{
+		return name;
 	}
 }
