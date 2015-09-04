@@ -330,6 +330,14 @@ public class SSDFCore {
 	 * Gets the content (all the objects) as a string.
 	 * @return The content as a string.*/
 	public String getContentString() {
+		return getContentString(false);
+	}
+	
+	/**
+	 * Gets the content (all the objects) as a string.
+	 * @param compress Whether to use compress mode or not.
+	 * @return The content as a string.*/
+	public String getContentString(boolean compress) {
 		StringBuilder sb 				= new StringBuilder();
 		Map<String, SSDArray> arrays 	= new HashMap<>();
 		Map<String, SSDObject> objects 	= array.getAllObjects();
@@ -347,7 +355,9 @@ public class SSDFCore {
 			}
 		}
 		
-		sb.append("{\n");
+		sb.append("{");
+		if(!compress)
+			sb.append("\n");
 		
 		boolean isFirstItem = true;
 		boolean dataWritten = false;
@@ -356,23 +366,32 @@ public class SSDFCore {
 			String[] splitKey = objectName.split("\\.");
 			
 			if(splitKey.length == 1 && !arrays.containsKey(objectName)) {
-				if(!isFirstItem) sb.append(",\n");
-				if(isFirstItem)  isFirstItem = false;
+				if(!isFirstItem) {
+					sb.append(",");
+					if(!compress)
+						sb.append("\n");
+				} else {
+					isFirstItem = false;
+				}
 				
 				SSDObject object 	= entry.getValue();
 				SSDType objectType 	= object.type();
 				String objectValue 	= object.stringValue();
 				
-				sb.append("\t");
+				if(!compress)
+					sb.append("\t");
 				sb.append(objectName);
-				sb.append(": ");
+				sb.append(":");
+				if(!compress)
+					sb.append(" ");
 				
 				if(objectType == SSDType.STRING) {
 					sb.append("\"");
 					sb.append(objectValue);
 					sb.append("\"");
 				} else {
-					sb.append(objectValue);
+					sb.append(objectType == SSDType.UNDEFINED ?
+						"null" : objectValue);
 				}
 				
 				if(!dataWritten)
@@ -381,12 +400,17 @@ public class SSDFCore {
 		}
 		
 		String content = getArrayContentString(
-			"", arrays, 1, false, false);
-		if(!content.isEmpty() && dataWritten)
-			sb.append(",\n\n");
+			"", arrays, 1, false, false, compress);
+		if(!content.isEmpty() && dataWritten) {
+			sb.append(",");
+			if(!compress)
+				sb.append("\n\n");
+		}
 		
 		sb.append(content);
-		sb.append("\n}");
+		if(!compress)
+			sb.append("\n");
+		sb.append("}");
 		
 		return sb.toString();
 	}
@@ -400,14 +424,16 @@ public class SSDFCore {
 	 * @param depth		 The depth level
 	 * @param wasItems	 Whether there were some written items or not.
 	 * @param inArray	 Whether the current content is in an array.
+	 * @param compress	 Whether to use compress mode or not.
 	 * @return The formatted string of the objects.*/
-	private String getArrayContentString(String startsWith, Map<String, SSDArray> arrays, int depth, boolean wasItems, boolean inArray) {
+	private String getArrayContentString(String startsWith, Map<String, SSDArray> arrays,
+		int depth, boolean wasItems, boolean inArray, boolean compress) {
 		StringBuilder sb 				= new StringBuilder();
 		Map<String, SSDObject> objects 	= array.getAllObjects();
 		
 		boolean isFirstArray = true;
 		for(Entry<String, SSDArray> array : arrays.entrySet()) {
-			String arrayKey = array.getKey();
+			String arrayKey 	   = array.getKey();
 			String[] splitArrayKey = arrayKey.split("\\.");
 			
 			if(arrayKey.startsWith(startsWith) && splitArrayKey.length == depth) {
@@ -419,11 +445,8 @@ public class SSDFCore {
 					String objectKey 		= object.getKey();
 					String[] splitObjectKey = objectKey.split("\\.");
 					
-					if(splitObjectKey.length == depth+1 && objectKey.startsWith(startsWith)) {
-						String formatName = objectKey.substring(arrayName.length()+1);
-						int indexOfDot	  = formatName.lastIndexOf('.');
-						formatName 		  = formatName.substring(indexOfDot+1);
-						
+					if(objectKey.startsWith(startsWith)) {
+						String formatName = splitObjectKey[depth];
 						if(!Pattern.matches("^\\d+$", formatName)) {
 							isArray = false;
 							break;
@@ -431,18 +454,28 @@ public class SSDFCore {
 					}
 				}
 				
-				if(!isFirstArray || wasItems) sb.append(",\n\n");
-				if(isFirstArray) 			  isFirstArray = false;
+				if(!isFirstArray || wasItems) {
+					sb.append(",");
+					if(!compress)
+						sb.append("\n\n");
+				}
+				if(isFirstArray)
+					isFirstArray = false;
 				
 				if(!inArray) {
-					sb.append(arrayTab);
+					if(!compress)
+						sb.append(arrayTab);
 					sb.append(arrayName);
-					sb.append(":\n");
+					sb.append(":");
+					if(!compress)
+						sb.append("\n");
 				}
 				
-				sb.append(arrayTab);
+				if(!compress)
+					sb.append(arrayTab);
 				sb.append(isArray ? "[" : "{");
-				sb.append("\n");
+				if(!compress)
+					sb.append("\n");
 				
 				boolean isFirstItem = true;
 				for(Entry<String, SSDObject> object : objects.entrySet()) {
@@ -455,14 +488,22 @@ public class SSDFCore {
 						String objectName = splitObjectKey[splitObjectKey.length-1];
 						
 						if(arrayKey.equals(objectPath)) {
-							if(!isFirstItem) sb.append(",\n");
-							if(isFirstItem)  isFirstItem = false;
+							if(!isFirstItem) {
+								sb.append(",");
+								if(!compress)
+									sb.append("\n");
+							} else {
+								isFirstItem = false;
+							}
 							
-							sb.append(objectTab);
+							if(!compress)
+								sb.append(objectTab);
 							
 							if(!isArray) {
 								sb.append(objectName);
-								sb.append(": ");
+								sb.append(":");
+								if(!compress)
+									sb.append(" ");
 							}
 							
 							SSDObject objectVal = object.getValue();
@@ -474,16 +515,19 @@ public class SSDFCore {
 								sb.append(objectValue);
 								sb.append("\"");
 							} else {
-								sb.append(objectValue);
+								sb.append(objectType == SSDType.UNDEFINED ?
+									"null" : objectValue);
 							}
 						}
 					}
 				}
 				
 				sb.append(getArrayContentString(
-					arrayKey, arrays, depth+1, !isFirstItem, isArray));
-				sb.append("\n");
-				sb.append(arrayTab);
+					arrayKey, arrays, depth+1, !isFirstItem, isArray, compress));
+				if(!compress) {
+					sb.append("\n");
+					sb.append(arrayTab);
+				}
 				sb.append(isArray ? "]" : "}");
 			}
 		}
