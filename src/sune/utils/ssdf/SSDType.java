@@ -4,8 +4,8 @@ package sune.utils.ssdf;
  * Stores all supported data types of
  * objects in SSD Files.
  * @author Sune*/
-public enum SSDType
-{
+public enum SSDType {
+	
 	/**
 	 * Represents a string object. In SSD File
 	 * it is defined as a collection of characters
@@ -45,18 +45,16 @@ public enum SSDType
 	private String regex;
 	
 	/**
-	 * Creates new instance of Data Type
+	 * Creates new instance of Data Type.
 	 * @param regex The string written in regular expression*/
-	private SSDType(String regex)
-	{
+	private SSDType(String regex) {
 		this.regex = regex;
 	}
 	
 	/**
-	 * Gets the regular expression string of the object type
+	 * Gets the regular expression string of the object type.
 	 * @return The string written in regular expression*/
-	public String getRegex()
-	{
+	public String getRegex() {
 		return regex;
 	}
 }

@@ -15,8 +15,8 @@ import java.util.regex.Pattern;
  * useful methods for manipulating with objects
  * in SSD Files.
  * @author Sune*/
-public class SSDFCore
-{
+public class SSDFCore {
+	
 	/**
 	 * The main SSD Array object*/
 	protected SSDArray array;
@@ -43,43 +43,37 @@ public class SSDFCore
 	/**
 	 * Stores all special words that should
 	 * not be read as a string*/
-	private String[] words = new String[]
-	{
+	private String[] words = {
 		"true", "false", "null"
 	};
 	
 	/**
-	 * Creates new instance of SSDF Core*/
-	public SSDFCore()
-	{
+	 * Creates new instance of SSDF Core.*/
+	public SSDFCore() {
 		this("");
 	}
 	
 	/**
-	 * Creates new instance of SSDF Core
+	 * Creates new instance of SSDF Core.
 	 * @param content The content of SSDF file in SSDF Syntax*/
-	public SSDFCore(String content)
-	{
+	public SSDFCore(String content) {
 		this.array = getObjects(format(content));
 	}
 	
 	/**
-	 * Creates new instance of SSDF Core
+	 * Creates new instance of SSDF Core.
 	 * @param file The file object to read*/
-	public SSDFCore(File file)
-	{
+	public SSDFCore(File file) {
 		this.array = getObjects(format(getContent(file)));
 	}
 	
 	/**
-	 * Gets the content of the given file
+	 * Gets the content of the given file.
 	 * @param file The file object from where to get the
 	 * 			   content
 	 * @return The content of the given file*/
-	private String getContent(File file)
-	{
-		try
-		{
+	private String getContent(File file) {
+		try {
 			BufferedReader reader = new BufferedReader(new FileReader(file));
 			StringBuilder builder = new StringBuilder();
 			
@@ -89,8 +83,8 @@ public class SSDFCore
 			
 			reader.close();
 			return builder.toString();
+		} catch(Exception ex) {
 		}
-		catch(Exception ex) {}
 		
 		return null;
 	}
@@ -101,8 +95,7 @@ public class SSDFCore
 	 * other characters.
 	 * @param string The string to format
 	 * @return The formatted string*/
-	private String format(String string)
-	{
+	private String format(String string) {
 		// Is in double-quoted
 		boolean idq = false;
 		// Is in single-quoted
@@ -120,8 +113,7 @@ public class SSDFCore
 		int skip = 0;
 		
 		StringBuilder sb = new StringBuilder();
-		for(int p = 0; p < string.length(); p++)
-		{
+		for(int p = 0; p < string.length(); p++) {
 			// Characters skipping
 			if(skip > 0) { skip--; continue; }
 			
@@ -158,21 +150,19 @@ public class SSDFCore
 	}
 	
 	/**
-	 * Formats object's name
+	 * Formats object's name.
 	 * @param name The object's name to format
 	 * @return The formatted object's name*/
-	private String formatName(String name)
-	{
+	private String formatName(String name) {
 		List<String> list = SSDFUtils.regex("([A-Za-z0-9\\_]+)", name);
 		return list.size() == 0 ? null : list.get(0);
 	}
 
 	/**
-	 * Formats object's value
+	 * Formats object's value.
 	 * @param value The object's value to format
 	 * @return The formatted object's value*/
-	private String formatValue(String value)
-	{
+	private String formatValue(String value) {
 		// Is in double-quoted
 		boolean idq = false;
 		// Is in single-quoted
@@ -187,8 +177,7 @@ public class SSDFCore
 		int addInt 	= 0;
 		
 		StringBuilder sb = new StringBuilder();
-		for(int p = 0; p < value.length(); p++)
-		{
+		for(int p = 0; p < value.length(); p++) {
 			char c = value.charAt(p);
 			
 			if(p == 0 && Character.isDigit(c))
@@ -200,23 +189,18 @@ public class SSDFCore
 			// Escapes the next character
 			if(c == '\\') { esc = true; continue; }
 			
-			if(!dig && !(isq || idq) && !add)
-			{
+			if(!dig && !(isq || idq) && !add) {
 				int k = 0;
-				for(String word : words)
-				{
-					if(((k = p)+word.length()) < value.length())
-					{
-						for(int i = 0; i < word.length(); i++)
-						{
+				for(String word : words) {
+					if(((k = p)+word.length()) < value.length()) {
+						for(int i = 0; i < word.length(); i++) {
 							if(word.charAt(i) != value.charAt(k++))
 								break;
 							if(i == word.length()-1)
 								add = true;
 						}
 						
-						if(add)
-						{
+						if(add) {
 							addInt = word.length();
 							break;
 						}
@@ -231,33 +215,30 @@ public class SSDFCore
 			 * only one character at the time.*/
 			if(esc)	esc = false;
 		}
-
+		
 		return sb.toString();
 	}
 	
 	/**
-	 * Gets all objects in the given SSD File's content string
+	 * Gets all objects in the given SSD File's content string.
 	 * @param string The SSD file's content
 	 * @return The Map (list) of all read objects*/
-	private SSDArray getObjects(String string)
-	{
+	private SSDArray getObjects(String string) {
 		return getObjects(getBracketsContent(string, oOB, cOB), "", false);
 	}
 
 	/**
-	 * Gets content between the two given brackets' characters
+	 * Gets content between the two given brackets' characters.
 	 * @param string 		The string where to get the content
 	 * @param openBrackets 	The character of opening brackets
 	 * @param closeBrackets The character of closing brackets
 	 * @return The content between the two given brackets' characters*/
-	private String getBracketsContent(String string, char openBrackets, char closeBrackets)
-	{
+	private String getBracketsContent(String string, char openBrackets, char closeBrackets) {
 		int b = 0;
 		int l = 0;
 		
 		StringBuilder sb = new StringBuilder();
-		for(int p = 0; p < string.length(); p++)
-		{
+		for(int p = 0; p < string.length(); p++) {
 			char c = string.charAt(p);
 
 			if(!(b == 0 && c == openBrackets) && !(b == 1 && c == closeBrackets))
@@ -269,7 +250,7 @@ public class SSDFCore
 			if(b == 0)
 				break;
 		}
-
+		
 		return SSDFUtils.substringEnd(sb.toString(), 0, l);
 	}
 	
@@ -281,8 +262,7 @@ public class SSDFCore
 	 * @param parentName 	The object's parent name
 	 * @param array 		If true, the parent object is an array, otherwise is not
 	 * @return The Map (list) of all read objects*/
-	private SSDArray getObjects(String string, String parentName, boolean array)
-	{
+	private SSDArray getObjects(String string, String parentName, boolean array) {
 		// Is in double-quoted
 		boolean idq = false;
 		// Is in single-quoted
@@ -301,34 +281,28 @@ public class SSDFCore
 		int lastCount 	= 0;
 		
 		StringBuilder sb = new StringBuilder();
-		for(int p = 0; p < string.length(); p++)
-		{
+		for(int p = 0; p < string.length(); p++) {
 			char c = string.charAt(p);
 
 			if(wn || wv)
 				sb.append(c);
 			
-			if(c == nvd && !(idq || isq))
-			{
+			if(c == nvd && !(idq || isq)) {
 				lastName = formatName(sb.toString());
-				
 				sb.setLength(0);
 				wn = false;
 				wv = true;
 			}
 			
-			if((c == itd && !(idq || isq)) || p == string.length()-1)
-			{
+			if((c == itd && !(idq || isq)) || p == string.length()-1) {
 				String name = parentName + (parentName.isEmpty() ? "" : ".") + (array ? Integer.toString(lastCount++) : lastName);
 				ssdArray.put(name, new SSDObject(name, formatValue(sb.toString())));
-				
 				sb.setLength(0);
 				wn = !array;
 				wv = array;
 			}
 			
-			if((c == oOB || c == oAB) && !(idq || isq))
-			{
+			if((c == oOB || c == oAB) && !(idq || isq)) {
 				String content = getBracketsContent(string.substring(p), c == oAB ? oAB : oOB, c == oAB ? cAB : cOB);
 				SSDArray ssdar = getObjects(content, parentName + (parentName.isEmpty() ? "" : ".") +
 										    (array ? Integer.toString(lastCount++) : lastName), c == oAB);
@@ -348,26 +322,23 @@ public class SSDFCore
 			// Escapes the next character
 			if(c == '\\') { esc = true; continue; }
 		}
-
+		
 		return ssdArray;
 	}
 	
 	/**
 	 * Gets the content (all the objects) as a string.
 	 * @return The content as a string.*/
-	public String getContentString()
-	{
+	public String getContentString() {
 		StringBuilder sb 				= new StringBuilder();
 		Map<String, SSDArray> arrays 	= new HashMap<>();
 		Map<String, SSDObject> objects 	= array.getAllObjects();
 		
-		for(Entry<String, SSDObject> entry : objects.entrySet())
-		{
+		for(Entry<String, SSDObject> entry : objects.entrySet()) {
 			String keyPath 	  = entry.getKey();
 			String[] splitKey = keyPath.split("\\.");
 			
-			while(splitKey.length > 1)
-			{
+			while(splitKey.length > 1) {
 				splitKey = keyPath.split("\\.");
 				keyPath	 = String.join(".", Arrays.copyOfRange(splitKey, 0, splitKey.length-1)).trim();
 				
@@ -380,32 +351,27 @@ public class SSDFCore
 		
 		boolean isFirstItem = true;
 		boolean dataWritten = false;
-		for(Entry<String, SSDObject> entry : objects.entrySet())
-		{
+		for(Entry<String, SSDObject> entry : objects.entrySet()) {
 			String objectName = entry.getKey();
 			String[] splitKey = objectName.split("\\.");
 			
-			if(splitKey.length == 1 && !arrays.containsKey(objectName))
-			{
+			if(splitKey.length == 1 && !arrays.containsKey(objectName)) {
 				if(!isFirstItem) sb.append(",\n");
 				if(isFirstItem)  isFirstItem = false;
 				
 				SSDObject object 	= entry.getValue();
-				SSDType objectType 	= object.getType();
-				String objectValue 	= object.getStringValue();
+				SSDType objectType 	= object.type();
+				String objectValue 	= object.stringValue();
 				
 				sb.append("\t");
 				sb.append(objectName);
 				sb.append(": ");
 				
-				if(objectType == SSDType.STRING)
-				{
+				if(objectType == SSDType.STRING) {
 					sb.append("\"");
 					sb.append(objectValue);
 					sb.append("\"");
-				}
-				else
-				{
+				} else {
 					sb.append(objectValue);
 				}
 				
@@ -415,8 +381,7 @@ public class SSDFCore
 		}
 		
 		String content = getArrayContentString(
-			"", arrays, 1, false);
-		
+			"", arrays, 1, false, false);
 		if(!content.isEmpty() && dataWritten)
 			sb.append(",\n\n");
 		
@@ -434,38 +399,32 @@ public class SSDFCore
 	 * @param arrays	 The map of all the arrays
 	 * @param depth		 The depth level
 	 * @param wasItems	 Whether there were some written items or not.
+	 * @param inArray	 Whether the current content is in an array.
 	 * @return The formatted string of the objects.*/
-	private String getArrayContentString(String startsWith, Map<String, SSDArray> arrays, int depth, boolean wasItems)
-	{
+	private String getArrayContentString(String startsWith, Map<String, SSDArray> arrays, int depth, boolean wasItems, boolean inArray) {
 		StringBuilder sb 				= new StringBuilder();
 		Map<String, SSDObject> objects 	= array.getAllObjects();
 		
 		boolean isFirstArray = true;
-		for(Entry<String, SSDArray> array : arrays.entrySet())
-		{
+		for(Entry<String, SSDArray> array : arrays.entrySet()) {
 			String arrayKey = array.getKey();
 			String[] splitArrayKey = arrayKey.split("\\.");
 			
-			if(arrayKey.startsWith(startsWith) && splitArrayKey.length == depth)
-			{
+			if(arrayKey.startsWith(startsWith) && splitArrayKey.length == depth) {
 				String arrayName = splitArrayKey[splitArrayKey.length-1];
 				String arrayTab	 = SSDFUtils.repeatString("\t", depth);
 				boolean isArray  = true;
 				
-				for(Entry<String, SSDObject> object : objects.entrySet())
-				{
+				for(Entry<String, SSDObject> object : objects.entrySet()) {
 					String objectKey 		= object.getKey();
 					String[] splitObjectKey = objectKey.split("\\.");
 					
-					if(splitObjectKey.length == depth+1 && objectKey.startsWith(arrayName))
-					{
+					if(splitObjectKey.length == depth+1 && objectKey.startsWith(startsWith)) {
 						String formatName = objectKey.substring(arrayName.length()+1);
-						int indexOfDot	  = formatName.indexOf('.');
-						formatName 		  = formatName.substring(0,
-							indexOfDot == -1 ? formatName.length() : indexOfDot);
+						int indexOfDot	  = formatName.lastIndexOf('.');
+						formatName 		  = formatName.substring(indexOfDot+1);
 						
-						if(!Pattern.matches("\\d+", formatName))
-						{
+						if(!Pattern.matches("^\\d+$", formatName)) {
 							isArray = false;
 							break;
 						}
@@ -475,50 +434,46 @@ public class SSDFCore
 				if(!isFirstArray || wasItems) sb.append(",\n\n");
 				if(isFirstArray) 			  isFirstArray = false;
 				
-				sb.append(arrayTab);
-				sb.append(arrayName);
-				sb.append(":\n");
-
+				if(!inArray) {
+					sb.append(arrayTab);
+					sb.append(arrayName);
+					sb.append(":\n");
+				}
+				
 				sb.append(arrayTab);
 				sb.append(isArray ? "[" : "{");
 				sb.append("\n");
 				
 				boolean isFirstItem = true;
-				for(Entry<String, SSDObject> object : objects.entrySet())
-				{
+				for(Entry<String, SSDObject> object : objects.entrySet()) {
 					String objectKey 		= object.getKey();
 					String[] splitObjectKey = objectKey.split("\\.");
 					
-					if(splitObjectKey.length == depth+1)
-					{
+					if(splitObjectKey.length == depth+1) {
 						String objectPath = String.join(".", Arrays.copyOfRange(splitObjectKey, 0, splitObjectKey.length-1));
 						String objectTab  = SSDFUtils.repeatString("\t", depth+1);
 						String objectName = splitObjectKey[splitObjectKey.length-1];
 						
-						if(arrayKey.equals(objectPath))
-						{
+						if(arrayKey.equals(objectPath)) {
 							if(!isFirstItem) sb.append(",\n");
 							if(isFirstItem)  isFirstItem = false;
 							
 							sb.append(objectTab);
 							
-							if(!isArray)
-							{
+							if(!isArray) {
 								sb.append(objectName);
 								sb.append(": ");
 							}
 							
-							SSDType objectType = object.getValue().getType();
-							String objectValue = object.getValue().getStringValue();
+							SSDObject objectVal = object.getValue();
+							SSDType objectType  = objectVal.type();
+							String objectValue  = objectVal.stringValue();
 							
-							if(objectType == SSDType.STRING)
-							{
+							if(objectType == SSDType.STRING) {
 								sb.append("\"");
 								sb.append(objectValue);
 								sb.append("\"");
-							}
-							else
-							{
+							} else {
 								sb.append(objectValue);
 							}
 						}
@@ -526,7 +481,7 @@ public class SSDFCore
 				}
 				
 				sb.append(getArrayContentString(
-					arrayKey, arrays, depth+1, !isFirstItem));
+					arrayKey, arrays, depth+1, !isFirstItem, isArray));
 				sb.append("\n");
 				sb.append(arrayTab);
 				sb.append(isArray ? "]" : "}");
@@ -539,9 +494,7 @@ public class SSDFCore
 	/**
 	 * Gets the main array that contains all the objects.
 	 * @return The main array object*/
-	public SSDArray getArray()
-	{
+	public SSDArray getArray() {
 		return array;
 	}
-	
 }

@@ -18,55 +18,49 @@ import javax.imageio.ImageIO;
 /**
  * Contains useful methods.
  * @author Sune*/
-public class SSDFUtils
-{
+public class SSDFUtils {
+	
 	/**
-	 * Gets the resource
+	 * Gets the resource as URL.
 	 * @param path Path to the resource
 	 * @return The URL object for the resource*/
-	public static URL getResource(String path)
-	{
+	public static URL getResource(String path) {
 		return SSDFUtils.class.getResource(path);
 	}
 
 	/**
-	 * Gets the resource as stream
+	 * Gets the resource as stream.
 	 * @param path Path to the resource
 	 * @return The input stream for the resource*/
-	public static InputStream getResourceAsStream(String path)
-	{
+	public static InputStream getResourceAsStream(String path) {
 		return SSDFUtils.class.getResourceAsStream(path);
 	}
 
 	/**
-	 * Gets the resource as image
+	 * Gets the resource as image.
 	 * @param path Path to the resource
 	 * @return The buffered image object from the resource*/
-	public static BufferedImage getResourceAsImage(String path)
-	{
-		try
-		{
+	public static BufferedImage getResourceAsImage(String path) {
+		try {
 			return ImageIO.read(getResourceAsStream(path));
+		} catch(Exception ex) {
 		}
-		catch(Exception ex) {}
 		
 		return null;
 	}
 	
 	/**
-	 * Gets the resource as file
+	 * Gets the resource as file.
 	 * @param path Path to the resource
 	 * @return The file object from the resource*/
-	public static File getResourceAsFile(String path)
-	{
-		try
-		{
+	public static File getResourceAsFile(String path) {
+		try {
 			File file = File.createTempFile("ssdf_", ".tmp");
 			file.deleteOnExit();
 			
 			InputStream is 		= getResourceAsStream(path);
 			FileOutputStream os = new FileOutputStream(file);
-			byte[] buffer 		= new byte[4096];
+			byte[] buffer 		= new byte[8192];
 			
 			int read;
 			while((read = is.read(buffer)) != -1)
@@ -76,8 +70,8 @@ public class SSDFUtils
 			is.close();
 			
 			return file;
+		} catch(Exception ex) {
 		}
-		catch(Exception ex) {}
 		
 		return null;
 	}
@@ -88,8 +82,7 @@ public class SSDFUtils
 	 * @param regex The regular expression pattern
 	 * @param input The input string
 	 * @return List of all matched groups*/
-	public static List<String> regex(String regex, String input)
-	{
+	public static List<String> regex(String regex, String input) {
 		List<String> list = new ArrayList<>();
 		Pattern pattern = Pattern.compile(regex);
 		Matcher matcher = pattern.matcher(input);
@@ -107,11 +100,9 @@ public class SSDFUtils
 	 * @param input The input string
 	 * @param group The group index
 	 * @return The matched group string*/
-	public static String regex(String regex, String input, int group)
-	{
+	public static String regex(String regex, String input, int group) {
 		Pattern pattern = Pattern.compile(regex);
 		Matcher matcher = pattern.matcher(input);
-		
 		return matcher.matches() ? matcher.group(group) : null;
 	}
 	
@@ -124,8 +115,7 @@ public class SSDFUtils
 	 * @param start  The start index
 	 * @param length The length
 	 * @return The substringed string*/
-	public static String substringEnd(String string, int start, int length)
-	{
+	public static String substringEnd(String string, int start, int length) {
 	    return string.substring(start, Math.max(start, string.length() - Math.min(start + length, string.length())));
 	}
 	
@@ -136,11 +126,11 @@ public class SSDFUtils
 	 * @param key The string
 	 * @return True, if the map has key that start with
 	 * 		   the given string, otherwise false*/
-	public static boolean containsKeyStartsWith(Map<String, SSDObject> map, String key)
-	{
-		for(Iterator<Entry<String, SSDObject>> it = map.entrySet().iterator(); it.hasNext();)
+	public static boolean containsKeyStartsWith(Map<String, SSDObject> map, String key) {
+		for(Iterator<Entry<String, SSDObject>> it = map.entrySet().iterator(); it.hasNext();) {
 			if(it.next().getKey().startsWith(key))
 				return true;
+		}
 		
 		return false;
 	}
@@ -150,8 +140,7 @@ public class SSDFUtils
 	 * @param string The string to repeat
 	 * @param number The number of repetitions
 	 * @return The repeated string*/
-	public static String repeatString(String string, int number)
-	{
+	public static String repeatString(String string, int number) {
 		StringBuilder sb = new StringBuilder();
 		for(int i = 0; i < number; i++)
 			sb.append(string);
