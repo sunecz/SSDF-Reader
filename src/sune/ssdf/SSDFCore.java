@@ -1,49 +1,54 @@
-package sune.utils.ssdf;
+package sune.ssdf;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
+import java.io.InputStream;
+import java.nio.ByteBuffer;
+import java.nio.CharBuffer;
+import java.nio.charset.Charset;
+import java.nio.charset.CharsetDecoder;
 import java.util.Arrays;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.regex.Pattern;
 
 /**
- * Helps with reading SSDF Syntax and contains
- * useful methods for manipulating with objects
- * in SSD Files.
+ * Helps with reading SSDF Syntax and contains methods
+ * that helps with manipulating with objects in SSD files.
+ * @version 1.1
  * @author Sune*/
-public class SSDFCore {
+public final class SSDFCore {
 	
 	/**
 	 * The main SSD Array object*/
-	protected SSDArray array;
+	protected final SSDArray array;
 	
 	/**
 	 * Opening object brackets*/
-	private char oOB = '{';
+	private final char oOB = '{';
 	/**
 	 * Closing object brackets*/
-	private char cOB = '}';
+	private final char cOB = '}';
 	/**
 	 * Opening array brackets*/
-	private char oAB = '[';
+	private final char oAB = '[';
 	/**
 	 * Closing array brackets*/
-	private char cAB = ']';
+	private final char cAB = ']';
 	/**
 	 * Name/value delimiter*/
-	private char nvd = ':';
+	private final char nvd = ':';
 	/**
 	 * Items delimiter*/
-	private char itd = ',';
+	private final char itd = ',';
 	
 	/**
 	 * Stores all special words that should
 	 * not be read as a string*/
-	private String[] words = {
+	private final String[] words = {
 		"true", "false", "null"
 	};
 	
@@ -68,22 +73,72 @@ public class SSDFCore {
 	}
 	
 	/**
+	 * Creates new instance of SSDF Core.
+	 * @param stream Input stream from which all the object
+	 * should be read.
+	 * @since 1.1*/
+	public SSDFCore(InputStream stream) {
+		this.array = getObjects(format(fromStream(stream, "UTF-8")));
+	}
+	
+	/**
+	 * Creates new instance of SSDF Core.
+	 * @param array Object of SSDArray containing all the object.
+	 * @since 1.1*/
+	public SSDFCore(SSDArray array) {
+		this.array = array;
+	}
+	
+	/**
 	 * Gets the content of the given file.
 	 * @param file The file object from where to get the
 	 * 			   content
 	 * @return The content of the given file*/
 	private String getContent(File file) {
-		try {
-			BufferedReader reader = new BufferedReader(new FileReader(file));
-			StringBuilder builder = new StringBuilder();
-			
+		StringBuilder builder = new StringBuilder();
+		try(BufferedReader reader = new BufferedReader(
+				new FileReader(file))) {
 			String line = "";
-			while((line = reader.readLine()) != null)
+			while((line = reader.readLine()) != null) {
 				builder.append(line).append("\n");
+			}
 			
-			reader.close();
 			return builder.toString();
 		} catch(Exception ex) {
+		}
+		
+		return null;
+	}
+	
+	/**
+	 * Gets a string from an input stream. The output string is decoded
+	 * to the given charset.
+	 * @param stream Input stream from which the string should be read.
+	 * @param charset Name of the charset
+	 * @return String from the given input stream.
+	 * @since 1.1*/
+	private String fromStream(InputStream stream, String charset) {
+		if(stream == null) return null;
+		
+		try {
+			StringBuilder builder  = new StringBuilder();
+			CharsetDecoder decoder = Charset.forName(charset).newDecoder();
+			byte[] buffer 		   = new byte[8192];
+			
+			int read;
+			while((read = stream.read(buffer)) != -1) {
+				CharBuffer cbuffer = decoder.decode(
+					ByteBuffer.wrap(Arrays.copyOf(buffer, read)));
+				builder.append(cbuffer.array());
+			}
+			
+			return builder.toString();
+		} catch(Exception ex) {
+		} finally {
+			try {
+				stream.close();
+			} catch(Exception ex) {
+			}
 		}
 		
 		return null;
@@ -96,9 +151,9 @@ public class SSDFCore {
 	 * @param string The string to format
 	 * @return The formatted string*/
 	private String format(String string) {
-		// Is in double-quoted
+		// Is double-quoted
 		boolean idq = false;
-		// Is in single-quoted
+		// Is single-quoted
 		boolean isq = false;
 		// Is escaped
 		boolean esc = false;
@@ -112,13 +167,14 @@ public class SSDFCore {
 		 * skipped*/
 		int skip = 0;
 		
+		char[] chars 	 = string.toCharArray();
 		StringBuilder sb = new StringBuilder();
-		for(int p = 0; p < string.length(); p++) {
+		for(int p = 0, l = string.length(); p < l; p++) {
 			// Characters skipping
 			if(skip > 0) { skip--; continue; }
 			
 			// Gets character on the position
-			char c = string.charAt(p);
+			char c = chars[p];
 			
 			// Quoting
 			if(c == '\"' && !isq && !esc) idq = !idq;
@@ -129,8 +185,8 @@ public class SSDFCore {
 			if((c == '\n' || c == '\r') && islc)	islc = false;
 			
 			// Block comments support
-			if((c == '/' && string.charAt(p+1) == '*') && !(idq || isq)) { isbc = true; continue; }
-			if((c == '*' && string.charAt(p+1) == '/') && !(idq || isq)) { isbc = false; skip = 1; continue; }
+			if((c == '/' && chars[p+1] == '*') && !(idq || isq)) { isbc = true; continue; }
+			if((c == '*' && chars[p+1] == '/') && !(idq || isq)) { isbc = false; skip = 1; continue; }
 
 			// Ignores special characters or comments
 			if(((c == ' ' || c == '\t' || c == '\n' || c == '\r') && !(idq || isq)) || islc || isbc)
@@ -155,7 +211,7 @@ public class SSDFCore {
 	 * @return The formatted object's name*/
 	private String formatName(String name) {
 		List<String> list = SSDFUtils.regex("([A-Za-z0-9\\_]+)", name);
-		return list.size() == 0 ? null : list.get(0);
+		return list.isEmpty() ? null : list.get(0);
 	}
 
 	/**
@@ -163,9 +219,9 @@ public class SSDFCore {
 	 * @param value The object's value to format
 	 * @return The formatted object's value*/
 	private String formatValue(String value) {
-		// Is in double-quoted
+		// Is double-quoted
 		boolean idq = false;
-		// Is in single-quoted
+		// Is single-quoted
 		boolean isq = false;
 		// Is escaped
 		boolean esc = false;
@@ -176,10 +232,10 @@ public class SSDFCore {
 		boolean add = false;
 		int addInt 	= 0;
 		
+		char[] chars	 = value.toCharArray();
 		StringBuilder sb = new StringBuilder();
-		for(int p = 0; p < value.length(); p++) {
-			char c = value.charAt(p);
-			
+		for(int p = 0, l = value.length(); p < l; p++) {
+			char c = chars[p];
 			if(p == 0 && Character.isDigit(c))
 				dig = true;
 
@@ -192,16 +248,17 @@ public class SSDFCore {
 			if(!dig && !(isq || idq) && !add) {
 				int k = 0;
 				for(String word : words) {
-					if(((k = p)+word.length()) < value.length()) {
-						for(int i = 0; i < word.length(); i++) {
-							if(word.charAt(i) != value.charAt(k++))
+					int f = word.length();
+					if(((k = p)+f) <= l) {
+						for(int i = 0; i < f; i++) {
+							if(word.charAt(i) != chars[k++])
 								break;
-							if(i == word.length()-1)
+							if(i == f-1)
 								add = true;
 						}
 						
 						if(add) {
-							addInt = word.length();
+							addInt = f;
 							break;
 						}
 					}
@@ -237,10 +294,10 @@ public class SSDFCore {
 		int b = 0;
 		int l = 0;
 		
+		char[] chars 	 = string.toCharArray();
 		StringBuilder sb = new StringBuilder();
-		for(int p = 0; p < string.length(); p++) {
-			char c = string.charAt(p);
-
+		for(int p = 0, m = string.length(); p < m; p++) {
+			char c = chars[p];
 			if(!(b == 0 && c == openBrackets) && !(b == 1 && c == closeBrackets))
 				sb.append(c);
 			
@@ -263,9 +320,9 @@ public class SSDFCore {
 	 * @param array 		If true, the parent object is an array, otherwise is not
 	 * @return The Map (list) of all read objects*/
 	private SSDArray getObjects(String string, String parentName, boolean array) {
-		// Is in double-quoted
+		// Is double-quoted
 		boolean idq = false;
-		// Is in single-quoted
+		// Is single-quoted
 		boolean isq = false;
 		// Is escaped
 		boolean esc = false;
@@ -280,9 +337,10 @@ public class SSDFCore {
 		String lastName = "";
 		int lastCount 	= 0;
 		
+		char[] chars	 = string.toCharArray();
 		StringBuilder sb = new StringBuilder();
-		for(int p = 0; p < string.length(); p++) {
-			char c = string.charAt(p);
+		for(int p = 0, l = string.length(); p < l; p++) {
+			char c = chars[p];
 
 			if(wn || wv)
 				sb.append(c);
@@ -294,8 +352,9 @@ public class SSDFCore {
 				wv = true;
 			}
 			
-			if((c == itd && !(idq || isq)) || p == string.length()-1) {
-				String name = parentName + (parentName.isEmpty() ? "" : ".") + (array ? Integer.toString(lastCount++) : lastName);
+			if((c == itd && !(idq || isq)) || p == l-1) {
+				String name = parentName + (parentName.isEmpty() ? "" : ".") +
+					(array ? Integer.toString(lastCount++) : lastName);
 				ssdArray.put(name, new SSDObject(name, formatValue(sb.toString())));
 				sb.setLength(0);
 				wn = !array;
@@ -305,7 +364,7 @@ public class SSDFCore {
 			if((c == oOB || c == oAB) && !(idq || isq)) {
 				String content = getBracketsContent(string.substring(p), c == oAB ? oAB : oOB, c == oAB ? cAB : cOB);
 				SSDArray ssdar = getObjects(content, parentName + (parentName.isEmpty() ? "" : ".") +
-										    (array ? Integer.toString(lastCount++) : lastName), c == oAB);
+					(array ? Integer.toString(lastCount++) : lastName), c == oAB);
 				
 				ssdArray.putAll(ssdar.getObjects());
 				p += content.length()+2;
@@ -320,7 +379,7 @@ public class SSDFCore {
 			 * only one character at the time.*/
 			if(esc)	esc = false;
 			// Escapes the next character
-			if(c == '\\') { esc = true; continue; }
+			if(c == '\\') esc = true;
 		}
 		
 		return ssdArray;
@@ -339,7 +398,7 @@ public class SSDFCore {
 	 * @return The content as a string.*/
 	public String getContentString(boolean compress) {
 		StringBuilder sb 				= new StringBuilder();
-		Map<String, SSDArray> arrays 	= new HashMap<>();
+		Map<String, SSDArray> arrays 	= new LinkedHashMap<>();
 		Map<String, SSDObject> objects 	= array.getAllObjects();
 		
 		for(Entry<String, SSDObject> entry : objects.entrySet()) {
@@ -348,7 +407,8 @@ public class SSDFCore {
 			
 			while(splitKey.length > 1) {
 				splitKey = keyPath.split("\\.");
-				keyPath	 = String.join(".", Arrays.copyOfRange(splitKey, 0, splitKey.length-1)).trim();
+				keyPath	 = String.join(".", Arrays.copyOfRange(
+					splitKey, 0, splitKey.length-1)).trim();
 				
 				if(!keyPath.isEmpty() && !arrays.containsKey(keyPath))
 					arrays.put(keyPath, new SSDArray(keyPath));
@@ -445,7 +505,7 @@ public class SSDFCore {
 					String objectKey 		= object.getKey();
 					String[] splitObjectKey = objectKey.split("\\.");
 					
-					if(objectKey.startsWith(startsWith)) {
+					if(objectKey.startsWith(startsWith) && depth < splitObjectKey.length) {
 						String formatName = splitObjectKey[depth];
 						if(!Pattern.matches("^\\d+$", formatName)) {
 							isArray = false;

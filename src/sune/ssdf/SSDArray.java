@@ -1,8 +1,8 @@
-package sune.utils.ssdf;
+package sune.ssdf;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -27,7 +27,7 @@ public class SSDArray implements Iterable<SSDObject> {
 	/**
 	 * Creates new instance of Data Array.*/
 	protected SSDArray() {
-		this.objects = new HashMap<>();
+		this.objects = new LinkedHashMap<>();
 		this.name	 = "";
 	}
 	
@@ -57,7 +57,7 @@ public class SSDArray implements Iterable<SSDObject> {
 	 * Creates new instance of Data Array.
 	 * @param name The name of the array*/
 	public SSDArray(String name) {
-		this(name, new HashMap<>());
+		this(name, new LinkedHashMap<>());
 	}
 	
 	/**
@@ -106,7 +106,7 @@ public class SSDArray implements Iterable<SSDObject> {
 			if(!hasArray(name)) throw new NoSuchFieldException
 				("The array '" + name + "' does not exist!");
 			
-			Map<String, SSDObject> map = new HashMap<>();
+			Map<String, SSDObject> map = new LinkedHashMap<>();
 			for(Iterator<Entry<String, SSDObject>> it = objects.entrySet().iterator(); it.hasNext();) {
 				Entry<String, SSDObject> entry = it.next();
 				String entryName 			   = entry.getKey();
@@ -298,7 +298,7 @@ public class SSDArray implements Iterable<SSDObject> {
 	 * Appends the array.
 	 * @param array The array object*/
 	public void appendArray(SSDArray array) {
-		Map<String, SSDObject> map = new HashMap<>();
+		Map<String, SSDObject> map = new LinkedHashMap<>();
 		for(Entry<String, SSDObject> entry : array.getAllObjects().entrySet()) {
 			String fullName 	= getTrueName(entry.getKey());
 			SSDObject object 	= entry.getValue();
@@ -369,7 +369,7 @@ public class SSDArray implements Iterable<SSDObject> {
 	 * Gets all objects that are stored in the array.
 	 * @return The Map (list) of all stored objects*/
 	public Map<String, SSDObject> getAllObjects() {
-		return new HashMap<>(objects);
+		return new LinkedHashMap<>(objects);
 	}
 	
 	/**

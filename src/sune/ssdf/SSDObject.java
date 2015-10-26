@@ -1,4 +1,4 @@
-package sune.utils.ssdf;
+package sune.ssdf;
 
 import java.util.regex.Pattern;
 
@@ -44,7 +44,7 @@ public class SSDObject {
 	 * Finds the Data Type of the object defined by the
 	 * object's value.
 	 * @param value The object's value*/
-	private static SSDType findDataType(String value) {
+	private static final SSDType findDataType(String value) {
 		for(SSDType type : SSDType.values()) {
 			if(Pattern.matches(type.getRegex(), value)) {
 				return type;
@@ -113,6 +113,7 @@ public class SSDObject {
 	 * @return The string of the object*/
 	@Override
 	public String toString() {
-		return String.format("[name=%s, type=%s, value=%s]", name, type, value);
+		return String.format(
+			"[name=%s, type=%s, value=%s]", name, type, value);
 	}
 }

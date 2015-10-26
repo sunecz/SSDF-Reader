@@ -1,6 +1,5 @@
-package sune.utils.ssdf;
+package sune.ssdf;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.InputStream;
@@ -13,18 +12,16 @@ import java.util.Map.Entry;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import javax.imageio.ImageIO;
-
 /**
  * Contains useful methods.
  * @author Sune*/
-public class SSDFUtils {
+public final class SSDFUtils {
 	
 	/**
 	 * Gets the resource as URL.
 	 * @param path Path to the resource
 	 * @return The URL object for the resource*/
-	public static URL getResource(String path) {
+	public static final URL getResource(String path) {
 		return SSDFUtils.class.getResource(path);
 	}
 
@@ -32,21 +29,8 @@ public class SSDFUtils {
 	 * Gets the resource as stream.
 	 * @param path Path to the resource
 	 * @return The input stream for the resource*/
-	public static InputStream getResourceAsStream(String path) {
+	public static final InputStream getResourceStream(String path) {
 		return SSDFUtils.class.getResourceAsStream(path);
-	}
-
-	/**
-	 * Gets the resource as image.
-	 * @param path Path to the resource
-	 * @return The buffered image object from the resource*/
-	public static BufferedImage getResourceAsImage(String path) {
-		try {
-			return ImageIO.read(getResourceAsStream(path));
-		} catch(Exception ex) {
-		}
-		
-		return null;
 	}
 	
 	/**
@@ -58,18 +42,17 @@ public class SSDFUtils {
 			File file = File.createTempFile("ssdf_", ".tmp");
 			file.deleteOnExit();
 			
-			InputStream is 		= getResourceAsStream(path);
-			FileOutputStream os = new FileOutputStream(file);
-			byte[] buffer 		= new byte[8192];
-			
-			int read;
-			while((read = is.read(buffer)) != -1)
-				os.write(buffer, 0, read);
-			
-			os.close();
-			is.close();
-			
-			return file;
+			try(InputStream is = getResourceStream(path)) {
+				try(FileOutputStream os = new FileOutputStream(file)) {
+					byte[] buffer = new byte[8192];
+					
+					int read;
+					while((read = is.read(buffer)) != -1)
+						os.write(buffer, 0, read);
+					
+					return file;
+				}
+			}
 		} catch(Exception ex) {
 		}
 		
@@ -89,7 +72,6 @@ public class SSDFUtils {
 
 		while(matcher.find())
 			list.add(matcher.group());
-		
 		return list;
 	}
 	
@@ -144,7 +126,6 @@ public class SSDFUtils {
 		StringBuilder sb = new StringBuilder();
 		for(int i = 0; i < number; i++)
 			sb.append(string);
-		
 		return sb.toString();
 	}
 }

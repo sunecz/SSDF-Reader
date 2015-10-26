@@ -1,4 +1,4 @@
-package sune.utils.ssdf;
+package sune.ssdf;
 
 /**
  * Stores all supported data types of
